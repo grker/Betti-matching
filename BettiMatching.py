@@ -520,6 +520,31 @@ class CubicalPersistence:
                     interval[1]
                 )
 
+    def birth_death_pixels_dim0(self, dim: int, start: int = 1):
+
+        def original_index_v(x, y):
+            return (int(x / 2), int(y / 2))
+
+        def original_index(x, y):
+            return (x, y)
+
+        func = original_index_v if self.construction == "V" else original_index
+
+        sorted_intervals = self.sorted_intervals(dim, refined=True)
+
+        if start >= len(sorted_intervals):
+            return []
+
+        birth_points = [
+            func(*self.index_to_coordinates(x)) for x, y in sorted_intervals[start:]
+        ]
+        death_points = [
+            func(*self.index_to_coordinates(self.get_generating_vertex(y)))
+            for x, y in sorted_intervals[start:]
+        ]
+        combined = torch.Tensor(list(zip(birth_points, death_points))).to(torch.long)
+        return combined
+
     def important_components(
         self, dim: int, num_intervals: int = 1, refined: bool = False
     ):
@@ -1285,10 +1310,10 @@ class CubicalPersistence:
 
         if type(intervals) != list:
             num_intervals = min(intervals, len(self.intervals[0]))
-            intervals, intervals_values = self.get_largest_intervals(
-                0, num_intervals, return_indices=True
-            )
-            # intervals = rd.sample(range(0,len(self.intervals[0])), num_intervals)
+            # intervals, intervals_values = self.get_largest_intervals(
+            #     0, num_intervals, return_indices=True
+            # )
+            intervals = rd.sample(range(0, len(self.intervals[0])), num_intervals)
 
         if len(intervals) == 1:
             (i, j) = self.intervals[0][intervals[0]]

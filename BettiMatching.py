@@ -520,7 +520,7 @@ class CubicalPersistence:
                     interval[1]
                 )
 
-    def birth_death_pixels_dim0(self, start: int = 1):
+    def birth_death_pixels(self, dim: int, start: int = 1):
 
         def original_index_v(x, y):
             return (int(x / 2), int(y / 2))
@@ -528,21 +528,34 @@ class CubicalPersistence:
         def original_index(x, y):
             return (x, y)
 
+        if not (dim == 0 or dim == 1):
+            raise ValueError(f"Invalid dimension: {dim}. Choose from: 0, 1")
 
         func = original_index_v if self.construction == "V" else original_index
-
-        sorted_intervals = self.sorted_intervals(0, refined=True)
+        sorted_intervals = self.sorted_intervals(dim, refined=True)
 
         if start >= len(sorted_intervals):
             return torch.empty(0).to(torch.long)
 
-        birth_points = [
-            func(*self.index_to_coordinates(x)) for x, y in sorted_intervals[start:]
-        ]
-        death_points = [
-            func(*self.index_to_coordinates(self.get_generating_vertex(y)))
-            for x, y in sorted_intervals[start:]
-        ]
+        if dim == 0:
+            birth_points = [
+                func(*self.index_to_coordinates(x)) for x, y in sorted_intervals[start:]
+            ]
+            death_points = [
+                func(*self.index_to_coordinates(self.get_generating_vertex(y)))
+                for x, y in sorted_intervals[start:]
+            ]
+
+        else:
+            birth_points = [
+                func(*self.index_to_coordinates(self.get_generating_vertex(x)))
+                for x, y in sorted_intervals[start:]
+            ]
+            death_points = [
+                func(*self.index_to_coordinates(self.get_generating_vertex(y)))
+                for x, y in sorted_intervals[start:]
+            ]
+
         combined = torch.Tensor(list(zip(birth_points, death_points))).to(torch.long)
         return combined
 
@@ -1482,10 +1495,10 @@ class CubicalPersistence:
 
         if type(intervals) != list:
             num_intervals = min(intervals, len(self.intervals[1]))
-            intervals, intervals_values = self.get_largest_intervals(
-                1, num_intervals, return_indices=True
-            )
-            # intervals = rd.sample(range(0,len(self.intervals[1])), num_intervals)
+            # intervals, intervals_values = self.get_largest_intervals(
+            #     1, num_intervals, return_indices=True
+            # )
+            intervals = rd.sample(range(0, len(self.intervals[1])), num_intervals)
 
         if len(intervals) == 1:
             (i, j) = self.intervals[1][intervals[0]]

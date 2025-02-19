@@ -520,7 +520,7 @@ class CubicalPersistence:
                     interval[1]
                 )
 
-    def birth_death_pixels_dim0(self, dim: int, start: int = 1):
+    def birth_death_pixels_dim0(self, start: int = 1):
 
         def original_index_v(x, y):
             return (int(x / 2), int(y / 2))
@@ -528,12 +528,13 @@ class CubicalPersistence:
         def original_index(x, y):
             return (x, y)
 
+
         func = original_index_v if self.construction == "V" else original_index
 
-        sorted_intervals = self.sorted_intervals(dim, refined=True)
+        sorted_intervals = self.sorted_intervals(0, refined=True)
 
         if start >= len(sorted_intervals):
-            return []
+            return torch.empty(0).to(torch.long)
 
         birth_points = [
             func(*self.index_to_coordinates(x)) for x, y in sorted_intervals[start:]

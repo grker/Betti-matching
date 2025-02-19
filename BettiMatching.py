@@ -1266,6 +1266,8 @@ class CubicalPersistence:
         return
 
     def get_generating_vertex(self, cube):
+        if cube == np.infty:
+            cube = self.num_cubes - 1
         boundary = [cube]
         while boundary != []:
             generating_boundary = max(boundary)

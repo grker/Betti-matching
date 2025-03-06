@@ -837,17 +837,12 @@ class CubicalPersistence:
             component_map = component_map.cuda()
             pixel_map = pixel_map.cuda()
 
-        print(f"component map max: {torch.max(component_map)}")
-        print(f"component map min: {torch.min(component_map)}")
-        print(
-            f"histogram of component map: {torch.histc(component_map.to(torch.float32), bins=10)}"
-        )
-
         print(f"pixel map max: {torch.max(pixel_map)}")
         print(f"pixel map min: {torch.min(pixel_map)}")
-        print(
-            f"histogram of pixel map: {torch.histc(pixel_map.to(torch.float32), bins=10)}"
-        )
+
+        print(f"sum component map: {torch.sum(component_map)}")
+        print(f"sum pixel map: {torch.sum(pixel_map > threshold)}")
+        # return component_map
 
         component_map = component_map * pixel_map
         return torch.where(component_map == 0, base_prob, component_map)
@@ -923,6 +918,13 @@ class CubicalPersistence:
         if fixed_threshold is None:
             for interval in intervals:
                 pass
+
+    def fixed_threshold_analysis(self, num_components: int, fixed_threshold: float):
+        important_components = self.important_components(
+            dim=0, num_intervals=num_components, refined=True
+        )
+
+        return [(interval, fixed_threshold) for interval in important_components]
 
     def threshold_analysis_dim0_components(
         self, num_components=0, num_bins=10, degree=3, minimal_threshold=0.0
